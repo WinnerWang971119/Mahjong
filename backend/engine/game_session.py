@@ -43,6 +43,7 @@ class Action:
     type: ActionType
     tile: Optional[str] = None
     combo: Optional[list[str]] = None
+    player_idx: Optional[int] = None  # Which player performs this action
 
 
 # Internal sub-phases within "play"
@@ -67,6 +68,7 @@ class GameSession:
         self._pending_discarder: Optional[int] = None
         self._just_drew: bool = False  # True if current player just drew a tile
         self._after_kong: bool = False  # True if current player just drew after kong
+        self._passed_players: set[int] = set()  # Players who passed during claim phase
 
     # ------------------------------------------------------------------
     # Public API
@@ -167,7 +169,16 @@ class GameSession:
         elif action.type == "win":
             self._do_win(gs, action)
         elif action.type == "pass":
-            self._do_pass(gs)
+            # Determine which player is passing
+            passer = action.player_idx
+            if passer is None:
+                # Fallback: find a non-discarder who hasn't passed yet
+                for i in range(4):
+                    if i != self._pending_discarder and i not in self._passed_players:
+                        passer = i
+                        break
+            if passer is not None:
+                self._do_pass(gs, passer)
 
     # ------------------------------------------------------------------
     # Claim actions (after a discard)
@@ -205,7 +216,11 @@ class GameSession:
                 actions.append(Action(type="chi", tile=discard, combo=combo))
 
         # Always can pass
-        actions.append(Action(type="pass"))
+        actions.append(Action(type="pass", player_idx=player_idx))
+
+        # Tag all actions with the player index
+        for a in actions:
+            a.player_idx = player_idx
 
         return actions
 
@@ -305,6 +320,7 @@ class GameSession:
         gs.last_action = "chi"
         self._pending_discard = None
         self._pending_discarder = None
+        self._passed_players.clear()
         self._just_drew = True  # Player now has 17-equivalent (needs to discard)
         self._sub_phase = "active_turn"
 
@@ -330,6 +346,7 @@ class GameSession:
         gs.last_action = "pong"
         self._pending_discard = None
         self._pending_discarder = None
+        self._passed_players.clear()
         self._just_drew = True  # Has extra tile, needs to discard
         self._sub_phase = "active_turn"
 
@@ -357,6 +374,7 @@ class GameSession:
             gs.last_action = "open_kong"
             self._pending_discard = None
             self._pending_discarder = None
+            self._passed_players.clear()
             self._just_drew = False
             self._sub_phase = "active_turn"
 
@@ -412,18 +430,25 @@ class GameSession:
         gs.phase = "win"
         gs.last_action = "win"
 
-    def _do_pass(self, gs: GameState) -> None:
-        """Player passes on claiming the discard. Advance to next player's draw."""
-        # For simplicity: a single pass advances to the next player's turn
-        assert self._pending_discarder is not None
-        next_player = (self._pending_discarder + 1) % 4
+    def _do_pass(self, gs: GameState, player_idx: int) -> None:
+        """Player passes on claiming the discard.
 
-        self._pending_discard = None
-        self._pending_discarder = None
-        self._sub_phase = "active_turn"
-        self._just_drew = False
-        gs.current_player = next_player
-        gs.last_action = "pass"
+        Only advances to next player's draw when all 3 non-discarders have passed.
+        """
+        assert self._pending_discarder is not None
+        self._passed_players.add(player_idx)
+
+        # Check if all non-discarders have passed
+        non_discarders = {i for i in range(4) if i != self._pending_discarder}
+        if self._passed_players >= non_discarders:
+            next_player = (self._pending_discarder + 1) % 4
+            self._pending_discard = None
+            self._pending_discarder = None
+            self._passed_players.clear()
+            self._sub_phase = "active_turn"
+            self._just_drew = False
+            gs.current_player = next_player
+            gs.last_action = "pass"
 
     # ------------------------------------------------------------------
     # Helpers
