@@ -22,8 +22,10 @@ def test_chi_invalid_with_honor_tile():
 def test_chi_combinations():
     hand = ["2m", "3m", "4m", "5m"]
     combos = get_chi_combinations(hand, "3m")
-    # Could form: 2m+3m+4m, 3m+4m+5m
-    assert len(combos) >= 1
+    # Should form exactly: 2m+3m+4m, 3m+4m+5m
+    assert len(combos) == 2
+    assert ["2m", "3m", "4m"] in combos
+    assert ["3m", "4m", "5m"] in combos
 
 def test_chi_no_combos_if_honor():
     combos = get_chi_combinations(["E", "S"], "W")

@@ -35,7 +35,12 @@ def get_chi_combinations(hand: list[str], discard: str) -> list[list[str]]:
         if valid:
             full_seq = sorted([f"{v}{suit}" for v in seq_vals])
             combos.append(full_seq)
-    return combos
+    # Deduplicate sequences
+    unique: list[list[str]] = []
+    for seq in combos:
+        if seq not in unique:
+            unique.append(seq)
+    return unique
 
 
 def validate_chi(hand: list[str], discard: str) -> bool:
@@ -62,7 +67,7 @@ def validate_open_kong(hand: list[str], discard: str) -> bool:
 def validate_added_kong(melds: list[Meld], drawn_tile: str) -> bool:
     """True if player has an existing pong meld matching drawn_tile."""
     return any(
-        m.type == "pong" and m.tiles[0] == drawn_tile
+        m.type == "pong" and drawn_tile in m.tiles
         for m in melds
     )
 
