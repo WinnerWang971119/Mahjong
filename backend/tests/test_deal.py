@@ -52,18 +52,25 @@ def test_flower_replacement_moves_flowers_to_flower_area():
     assert "f1" in gs.players[0].flowers
 
 def test_flower_replacement_draws_replacement_tile():
-    gs = make_game_with_wall()
-    deal_initial_hands(gs)
-    back_size_before = len(gs.wall_back)
+    # Use a deterministic setup: put known flowers in hand, no flowers in back wall
     from engine.tiles import FLOWERS
-    # Count flowers in all hands
-    flower_count = sum(
-        sum(1 for t in p.hand if t in FLOWERS)
-        for p in gs.players
-    )
+    gs = GameState.new_game()
+    gs.wall = build_full_deck()[:128]  # non-flower tiles only
+    gs.wall_back = build_full_deck()[:16]  # non-flower tiles for replacements
+    # Give each player 16 non-flower tiles
+    for i, p in enumerate(gs.players):
+        p.hand = [f"{(i*4+j) % 9 + 1}m" for j in range(16)]
+    # Dealer gets 17
+    gs.players[0].hand.append("1p")
+    # Force exactly 2 flowers into player 0's hand
+    gs.players[0].hand[0] = "f1"
+    gs.players[0].hand[1] = "f2"
+    back_size_before = len(gs.wall_back)
     flower_replacement(gs)
-    # Each flower replaced by 1 tile from back wall
-    assert len(gs.wall_back) == back_size_before - flower_count
+    # Exactly 2 flowers replaced = 2 draws from back wall
+    assert len(gs.wall_back) == back_size_before - 2
+    assert "f1" not in gs.players[0].hand
+    assert "f2" not in gs.players[0].hand
 
 def test_flower_replacement_phase_set_to_play():
     gs = make_game_with_wall()
