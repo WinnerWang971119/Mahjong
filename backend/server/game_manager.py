@@ -4,6 +4,7 @@ from __future__ import annotations
 from engine.game_session import GameSession, Action
 from engine.state import GameState
 from ai.rule_based import RuleBasedAI
+from ai.shanten import shanten_number
 from server.serializer import serialize_game_state
 
 # Claim priority: higher value = higher priority.
@@ -29,6 +30,8 @@ class GameManager:
         self.ai = RuleBasedAI()
         self.mode = mode
         self.events: list[dict] = []
+        self.replay_frames: list[dict] = []
+        self._turn_counter: int = 0
 
     # ------------------------------------------------------------------
     # Public API
@@ -57,9 +60,13 @@ class GameManager:
         self._run_ai_turns()
 
     def get_client_state(self, reveal_all: bool = False) -> dict:
-        """Return the serialized game state visible to the human player."""
+        """Return the serialized game state visible to the human player.
+
+        In inspect mode all hands are always revealed.
+        """
+        effective_reveal = reveal_all or self.mode == "inspect"
         return serialize_game_state(
-            self.session.state, self.human_seat, reveal_all=reveal_all
+            self.session.state, self.human_seat, reveal_all=effective_reveal
         )
 
     def get_action_request(self) -> dict | None:
@@ -92,15 +99,29 @@ class GameManager:
     # Internal helpers
     # ------------------------------------------------------------------
 
+    def get_replay_frames(self) -> list[dict]:
+        """Return all accumulated replay frames."""
+        return list(self.replay_frames)
+
     def _append_event(
         self, event: str, player: int, tile: str | None = None
     ) -> None:
-        self.events.append({"event": event, "player": player, "tile": tile})
+        event_dict = {"event": event, "player": player, "tile": tile}
+        self.events.append(event_dict)
+        # Also record for replay
+        self._turn_counter += 1
+        self.replay_frames.append({
+            "turn": self._turn_counter,
+            "event": event,
+            "player": player,
+            "tile": tile,
+        })
 
     def _run_ai_turns(self) -> None:
         """Run AI turns until the human must act or the game ends.
 
         Safety cap of 500 iterations prevents infinite loops in edge cases.
+        In inspect mode, all 4 seats are AI-controlled.
         """
         for _ in range(500):
             phase = self.session.state.phase
@@ -111,19 +132,27 @@ class GameManager:
                 return
 
             if self.session._sub_phase == "claim":
-                human_must_decide = self._handle_claim_phase()
-                if human_must_decide:
-                    return  # Human has a meaningful claim option
+                if self.mode == "inspect":
+                    # In inspect mode there is no human, resolve claims fully
+                    self._handle_claim_phase_inspect()
+                else:
+                    human_must_decide = self._handle_claim_phase()
+                    if human_must_decide:
+                        return  # Human has a meaningful claim option
                 continue  # Claim resolved; re-evaluate loop
 
             # --- active_turn ---
             current = self.session.state.current_player
-            if current == self.human_seat:
+            if current == self.human_seat and self.mode != "inspect":
                 return  # Human's turn
 
             legal = self.session.get_legal_actions(current)
             if not legal:
                 return  # Shouldn't happen, but be safe
+
+            # In inspect mode, emit ai_thinking with shanten data
+            if self.mode == "inspect":
+                self._emit_ai_thinking(current)
 
             ai_action = self.ai.choose_action(
                 self.session.state, current, legal
@@ -220,3 +249,47 @@ class GameManager:
                 if a.type == "pass":
                     self.session.step(a)
                     break
+
+    def _handle_claim_phase_inspect(self) -> None:
+        """Resolve claim phase entirely with AI (inspect mode, no human)."""
+        best_action: Action | None = None
+        best_priority = -1
+
+        for idx in range(4):
+            actions = self.session.get_legal_actions(idx)
+            for a in actions:
+                p = _CLAIM_PRIORITY.get(a.type, 0)
+                if p > best_priority:
+                    best_priority = p
+                    best_action = a
+
+        if best_action is not None and best_priority > 0:
+            claimer_idx = best_action.player_idx
+            assert claimer_idx is not None
+            legal = self.session.get_legal_actions(claimer_idx)
+            ai_action = self.ai.choose_action(
+                self.session.state, claimer_idx, legal
+            )
+            if ai_action.type != "pass":
+                self._pass_all_except(claimer_idx)
+                self.session.step(ai_action)
+                self._append_event(
+                    ai_action.type, claimer_idx, ai_action.tile
+                )
+                return
+
+        self._pass_all()
+
+    def _emit_ai_thinking(self, player_idx: int) -> None:
+        """Emit an ai_thinking event with shanten data for inspect mode."""
+        ps = self.session.state.players[player_idx]
+        try:
+            s = shanten_number(ps.hand, ps.melds)
+        except Exception:
+            s = None
+        self.events.append({
+            "event": "ai_thinking",
+            "player": player_idx,
+            "tile": None,
+            "shanten": s,
+        })
