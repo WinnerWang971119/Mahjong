@@ -1,0 +1,21 @@
+[project]
+name = "mahjong-engine"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["engine*", "ai*"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=engine --cov=ai --cov-report=term-missing"
+
+[tool.coverage.run]
+source = ["engine", "ai"]
