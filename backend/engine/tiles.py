@@ -39,7 +39,7 @@ def build_flower_set() -> list[str]:
 
 def is_number_tile(tile: str) -> bool:
     """True if tile is a number tile (萬/筒/索)."""
-    return len(tile) == 2 and tile[1] in SUITS and tile[0].isdigit()
+    return len(tile) == 2 and tile[1] in SUITS and tile[0] in "123456789"
 
 
 def is_honor_tile(tile: str) -> bool:
