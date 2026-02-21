@@ -135,7 +135,7 @@ def is_standard_win(hand: list[str], melds: list[Meld]) -> bool:
 # Flower-based win conditions
 # ---------------------------------------------------------------------------
 
-_ALL_FLOWERS = frozenset(f"f{i}" for i in range(1, 9))
+_ALL_FLOWERS = frozenset(FLOWERS)
 
 
 def is_bajian_guohai(flowers: list[str]) -> bool:

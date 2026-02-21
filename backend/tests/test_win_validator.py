@@ -52,6 +52,20 @@ def test_decompose_returns_valid_grouping():
     assert len(sets) == 1
     assert pair == ["1p", "1p"]
 
+def test_backtracking_triplet_vs_sequence():
+    # 1m1m1m2m3m requires backtracking: triplet 1m1m1m leaves 2m3m orphaned,
+    # must try sequence 1m2m3m + pair 1m1m instead
+    from engine.state import Meld
+    melds = [
+        Meld(type="pong", tiles=["E","E","E"], from_player=1),
+        Meld(type="pong", tiles=["S","S","S"], from_player=2),
+        Meld(type="chi",  tiles=["4m","5m","6m"], from_player=3),
+        Meld(type="pong", tiles=["N","N","N"], from_player=0),
+    ]
+    hand = ["1m","1m","1m","2m","3m"]
+    assert is_standard_win(hand, melds=melds) is True
+
+
 def test_decompose_returns_none_for_non_winning():
     hand = ["1m","3m","5m","7m","9m"]
     assert decompose_hand(hand, melds=[]) is None
