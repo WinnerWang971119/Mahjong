@@ -6,6 +6,7 @@ from typing import Literal, Optional
 
 MeldType = Literal["chi", "pong", "open_kong", "added_kong", "concealed_kong"]
 Phase = Literal["deal", "flower_replacement", "play", "win", "draw"]
+WindType = Literal["E", "S", "W", "N"]
 
 
 @dataclass
@@ -33,7 +34,7 @@ class GameState:
     wall_back: list[str]        # 槓尾 replacement tiles (back wall)
     discard_pool: list[str]     # all discarded tiles (牌海)
     current_player: int
-    round_wind: str             # "E" / "S" / "W" / "N"
+    round_wind: WindType        # "E" / "S" / "W" / "N"
     round_number: int           # rounds completed in current wind circle
     dealer_index: int
     last_discard: Optional[str]
