@@ -107,9 +107,9 @@ def test_high_shanten_disconnected_hand():
         "E", "S", "W", "N", "C", "F",
     ]
     s = shanten_number(hand, [])
-    # With 16 disconnected tiles, we can still form pairs from none of them,
-    # so shanten should be high (at least 4)
-    assert s >= 4
+    # No complete sets, but skip-one partial waits exist (1m+3m, 5m+7m, etc.)
+    # shanten = 2*5 - 0 mentsu - 4 taatsu = 6
+    assert s == 6
 
 
 # ---------------------------------------------------------------------------
