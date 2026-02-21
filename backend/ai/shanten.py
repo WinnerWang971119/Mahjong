@@ -1,13 +1,16 @@
-"""Shanten number calculator for Taiwan 16-tile Mahjong (from scratch).
+"""Shanten number calculator for Taiwan 16-tile Mahjong.
 
 Taiwan Mahjong uses 16 tiles in hand. A winning hand consists of
 5 sets (sequences or triplets) plus 1 pair, totaling 17 tiles
 (16 in hand + 1 drawn/claimed tile). With exposed melds, the hand
 tiles are reduced accordingly.
+
+This implementation uses an array-based representation for performance:
+tiles are mapped to indices 0-33 (9 man + 9 pin + 9 sou + 7 honor),
+and counts are tracked in a flat list to avoid repeated Counter() calls
+and list copies.
 """
 from __future__ import annotations
-
-from collections import Counter
 
 from engine.tiles import (
     FLOWERS,
@@ -19,6 +22,32 @@ from engine.tiles import (
 from engine.state import Meld
 from engine.win_validator import is_standard_win
 
+# --- Tile-to-index mapping ---
+# 0-8: 1m-9m, 9-17: 1p-9p, 18-26: 1s-9s, 27-33: E,S,W,N,C,F,B
+_SUIT_OFFSET = {"m": 0, "p": 9, "s": 18}
+_HONOR_INDEX = {"E": 27, "S": 28, "W": 29, "N": 30, "C": 31, "F": 32, "B": 33}
+_INDEX_TO_TILE: list[str] = []
+for _s in ("m", "p", "s"):
+    for _v in range(1, 10):
+        _INDEX_TO_TILE.append(f"{_v}{_s}")
+for _h in ("E", "S", "W", "N", "C", "F", "B"):
+    _INDEX_TO_TILE.append(_h)
+
+_NUM_TILE_TYPES = 34
+
+
+def _tile_to_idx(tile: str) -> int:
+    if len(tile) == 2 and tile[1] in _SUIT_OFFSET:
+        return int(tile[0]) - 1 + _SUIT_OFFSET[tile[1]]
+    return _HONOR_INDEX[tile]
+
+
+def _hand_to_counts(hand: list[str]) -> list[int]:
+    counts = [0] * _NUM_TILE_TYPES
+    for t in hand:
+        counts[_tile_to_idx(t)] += 1
+    return counts
+
 
 def shanten_number(hand: list[str], melds: list[Meld]) -> int:
     """Calculate shanten number for Taiwan 16-tile Mahjong.
@@ -27,116 +56,107 @@ def shanten_number(hand: list[str], melds: list[Meld]) -> int:
       -1 = winning hand (tsumo / already complete)
        0 = tenpai (one tile away from win)
        n = n tiles needed to reach tenpai
-
-    The hand should contain only the concealed tiles (not tiles locked
-    in melds). For a player with no melds, the hand has 16 tiles when
-    it is their turn (before discard) or 17 tiles if checking after draw.
     """
     sets_needed = 5 - len(melds)
-    sorted_hand = sorted(hand)
-    return _shanten(sorted_hand, sets_needed)
-
-
-def _shanten(tiles: list[str], sets_needed: int) -> int:
-    """Minimum shanten via exhaustive grouping.
-
-    Uses the standard shanten formula from mahjong theory:
-
-      shanten = 2 * (sets_needed - mentsu) - taatsu - jantai
-
-    Where:
-      - mentsu  = number of complete sets (triplets or sequences) found
-      - taatsu  = number of partial sets (adjacent/skip pairs, NOT the jantou)
-      - jantai  = 1 if a pair candidate (jantou / 將眼) has been found, else 0
-
-    Constraints:
-      - taatsu <= sets_needed - mentsu (partials can't exceed remaining sets)
-
-    Result: -1 = complete, 0 = tenpai, n = n away from tenpai.
-    """
-    best = [2 * sets_needed]  # worst case
-
-    def search(
-        tiles: list[str],
-        mentsu: int,
-        taatsu: int,
-        jantai: bool,
-    ) -> None:
-        # Cap taatsu at the number of remaining incomplete sets
-        effective_taatsu = min(taatsu, sets_needed - mentsu)
-        s = 2 * (sets_needed - mentsu) - effective_taatsu - (1 if jantai else 0)
-        if s < best[0]:
-            best[0] = s
-
-        # Pruning: can't improve beyond -1
-        if best[0] <= -1:
-            return
-
-        if not tiles:
-            return
-
-        t = tiles[0]
-        counts = Counter(tiles)
-
-        # --- Try complete sets from the first tile ---
-
-        # Triplet
-        if counts[t] >= 3:
-            rem = tiles.copy()
-            for _ in range(3):
-                rem.remove(t)
-            search(rem, mentsu + 1, taatsu, jantai)
-
-        # Sequence (number tiles only, value <= 7)
-        if is_number_tile(t):
-            suit = tile_suit(t)
-            val = tile_value(t)
-            t2 = f"{val + 1}{suit}"
-            t3 = f"{val + 2}{suit}"
-            if val <= 7 and counts.get(t2, 0) >= 1 and counts.get(t3, 0) >= 1:
-                rem = tiles.copy()
-                rem.remove(t)
-                rem.remove(t2)
-                rem.remove(t3)
-                search(rem, mentsu + 1, taatsu, jantai)
-
-        # --- Try pair as jantou (only once) ---
-        if not jantai and counts[t] >= 2:
-            rem = tiles.copy()
-            rem.remove(t)
-            rem.remove(t)
-            search(rem, mentsu, taatsu, True)
-
-        # --- Try partial sets (taatsu) ---
-        if taatsu < (sets_needed - mentsu):
-            # Pair as taatsu (only if jantai already found)
-            if jantai and counts[t] >= 2:
-                rem = tiles.copy()
-                rem.remove(t)
-                rem.remove(t)
-                search(rem, mentsu, taatsu + 1, jantai)
-
-            # Adjacent or skip-one sequence partials (number tiles only)
-            if is_number_tile(t):
-                suit = tile_suit(t)
-                val = tile_value(t)
-                for dv in (1, 2):
-                    nv = val + dv
-                    if nv <= 9:
-                        t2 = f"{nv}{suit}"
-                        if counts.get(t2, 0) >= 1:
-                            rem = tiles.copy()
-                            rem.remove(t)
-                            rem.remove(t2)
-                            search(rem, mentsu, taatsu + 1, jantai)
-
-        # Skip this tile entirely
-        rem = tiles.copy()
-        rem.remove(t)
-        search(rem, mentsu, taatsu, jantai)
-
-    search(tiles, 0, 0, False)
+    counts = _hand_to_counts(hand)
+    best = [2 * sets_needed]
+    _search(counts, 0, sets_needed, 0, 0, False, best)
     return best[0]
+
+
+def _search(
+    counts: list[int],
+    idx: int,
+    sets_needed: int,
+    mentsu: int,
+    taatsu: int,
+    jantai: bool,
+    best: list[int],
+) -> None:
+    """Recursive backtracking search over tile count array."""
+    # Evaluate current state
+    effective_taatsu = min(taatsu, sets_needed - mentsu)
+    s = 2 * (sets_needed - mentsu) - effective_taatsu - (1 if jantai else 0)
+    if s < best[0]:
+        best[0] = s
+    if best[0] <= -1:
+        return
+
+    # Skip to next non-zero tile
+    while idx < _NUM_TILE_TYPES and counts[idx] == 0:
+        idx += 1
+    if idx >= _NUM_TILE_TYPES:
+        return
+
+    # Upper-bound pruning: even if all remaining tiles form perfect sets/partials,
+    # can we beat the current best?
+    remaining = sum(counts[idx:])
+    max_new_mentsu = remaining // 3
+    max_new_taatsu = (remaining - max_new_mentsu * 3) // 2
+    theoretical_best = (
+        2 * (sets_needed - mentsu - max_new_mentsu)
+        - min(taatsu + max_new_taatsu, sets_needed - mentsu - max_new_mentsu)
+        - 1  # assume we find jantai
+    )
+    if theoretical_best >= best[0]:
+        return
+
+    # --- Try complete sets ---
+
+    # Triplet
+    if counts[idx] >= 3:
+        counts[idx] -= 3
+        _search(counts, idx, sets_needed, mentsu + 1, taatsu, jantai, best)
+        counts[idx] += 3
+
+    # Sequence (only for number tiles: idx 0-26, and value <= 7 within suit)
+    if idx < 27 and (idx % 9) <= 6:
+        if counts[idx] >= 1 and counts[idx + 1] >= 1 and counts[idx + 2] >= 1:
+            counts[idx] -= 1
+            counts[idx + 1] -= 1
+            counts[idx + 2] -= 1
+            _search(counts, idx, sets_needed, mentsu + 1, taatsu, jantai, best)
+            counts[idx] += 1
+            counts[idx + 1] += 1
+            counts[idx + 2] += 1
+
+    # --- Try pair as jantou ---
+    if not jantai and counts[idx] >= 2:
+        counts[idx] -= 2
+        _search(counts, idx, sets_needed, mentsu, taatsu, True, best)
+        counts[idx] += 2
+
+    # --- Try partial sets (taatsu) ---
+    if taatsu < (sets_needed - mentsu):
+        # Pair as taatsu (when jantou already found)
+        if jantai and counts[idx] >= 2:
+            counts[idx] -= 2
+            _search(counts, idx, sets_needed, mentsu, taatsu + 1, jantai, best)
+            counts[idx] += 2
+
+        # Adjacent sequence partial (number tiles only)
+        if idx < 27 and (idx % 9) <= 7:
+            if counts[idx] >= 1 and counts[idx + 1] >= 1:
+                counts[idx] -= 1
+                counts[idx + 1] -= 1
+                _search(counts, idx, sets_needed, mentsu, taatsu + 1, jantai, best)
+                counts[idx] += 1
+                counts[idx + 1] += 1
+
+        # Skip-one sequence partial (number tiles only)
+        if idx < 27 and (idx % 9) <= 6:
+            if counts[idx] >= 1 and counts[idx + 2] >= 1:
+                counts[idx] -= 1
+                counts[idx + 2] -= 1
+                _search(counts, idx, sets_needed, mentsu, taatsu + 1, jantai, best)
+                counts[idx] += 1
+                counts[idx + 2] += 1
+
+    # Skip this tile entirely (move to next tile type)
+    saved = counts[idx]
+    counts[idx] = 0
+    _search(counts, idx + 1, sets_needed, mentsu, taatsu, jantai, best)
+    counts[idx] = saved
 
 
 def tenpai_tiles(hand: list[str], melds: list[Meld]) -> list[str]:
