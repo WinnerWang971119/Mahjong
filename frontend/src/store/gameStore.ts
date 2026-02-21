@@ -7,7 +7,7 @@ import type {
   GameSettings,
 } from '../types/game'
 
-type ViewScreen = 'lobby' | 'game' | 'scoring' | 'replay' | 'settings' | 'history'
+export type ViewScreen = 'lobby' | 'game' | 'scoring' | 'replay' | 'settings' | 'history'
 
 interface GameStore {
   // Connection
