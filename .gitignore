@@ -5,5 +5,3 @@ __pycache__/
 .coverage
 htmlcov/
 dist/
-backend/.venv/
-backend/__pycache__/
