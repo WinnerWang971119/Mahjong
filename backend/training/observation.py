@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from engine.game_session import Action
 from engine.state import GameState, Meld
 
 
@@ -126,3 +127,125 @@ class ObservationEncoder:
 
         assert offset == self.obs_size
         return obs
+
+
+# ---------------------------------------------------------------
+# Action Encoder
+# ---------------------------------------------------------------
+
+
+def _build_chi_combos() -> list[tuple[str, str, str]]:
+    """Build all 21 unique chi combinations (7 starting values x 3 suits)."""
+    combos: list[tuple[str, str, str]] = []
+    for suit in ("m", "p", "s"):
+        for start in range(1, 8):
+            combo = (f"{start}{suit}", f"{start+1}{suit}", f"{start+2}{suit}")
+            combos.append(combo)
+    return combos
+
+
+_CHI_COMBOS: list[tuple[str, str, str]] = _build_chi_combos()
+_CHI_COMBO_TO_IDX: dict[tuple[str, str, str], int] = {
+    c: i for i, c in enumerate(_CHI_COMBOS)
+}
+
+
+class ActionEncoder:
+    """Encode discrete actions as integers and provide legal-action masking.
+
+    Action space layout (128 total):
+        [0:34]     discard tile_i
+        [34:55]    chi combo_j  (21 unique sorted triples: 7 start x 3 suits)
+        [55]       pong
+        [56]       open_kong
+        [57:91]    added_kong tile_i  (which pong to extend)
+        [91:125]   concealed_kong tile_i  (which tile to kong)
+        [125]      win
+        [126]      pass
+        [127]      draw
+    """
+
+    DISCARD_OFFSET: int = 0          # 34 actions
+    CHI_OFFSET: int = 34             # 21 actions
+    PONG_OFFSET: int = 55            #  1 action
+    OPEN_KONG_OFFSET: int = 56       #  1 action
+    ADDED_KONG_OFFSET: int = 57      # 34 actions
+    CONCEALED_KONG_OFFSET: int = 91  # 34 actions
+    WIN_OFFSET: int = 125            #  1 action
+    PASS_OFFSET: int = 126           #  1 action
+    DRAW_OFFSET: int = 127           #  1 action
+
+    action_size: int = 128
+
+    def action_to_int(self, action: Action) -> int:
+        """Convert an Action dataclass to an integer index."""
+        if action.type == "discard":
+            assert action.tile is not None
+            return self.DISCARD_OFFSET + tile_to_index(action.tile)
+        elif action.type == "chi":
+            assert action.combo is not None
+            key = tuple(sorted(action.combo))
+            return self.CHI_OFFSET + _CHI_COMBO_TO_IDX[key]
+        elif action.type == "pong":
+            return self.PONG_OFFSET
+        elif action.type == "open_kong":
+            return self.OPEN_KONG_OFFSET
+        elif action.type == "added_kong":
+            assert action.tile is not None
+            return self.ADDED_KONG_OFFSET + tile_to_index(action.tile)
+        elif action.type == "concealed_kong":
+            assert action.tile is not None
+            return self.CONCEALED_KONG_OFFSET + tile_to_index(action.tile)
+        elif action.type == "win":
+            return self.WIN_OFFSET
+        elif action.type == "pass":
+            return self.PASS_OFFSET
+        elif action.type == "draw":
+            return self.DRAW_OFFSET
+        else:
+            raise ValueError(f"Unknown action type: {action.type}")
+
+    def int_to_action(self, idx: int, player_idx: int) -> Action:
+        """Convert an integer index back to an Action dataclass."""
+        if idx < 0 or idx >= self.action_size:
+            raise ValueError(f"Action index {idx} out of range [0, {self.action_size})")
+
+        if idx < self.CHI_OFFSET:
+            # Discard: [0, 34)
+            tile = TILE_TYPES[idx - self.DISCARD_OFFSET]
+            return Action(type="discard", tile=tile, player_idx=player_idx)
+        elif idx < self.PONG_OFFSET:
+            # Chi: [34, 55)
+            combo = _CHI_COMBOS[idx - self.CHI_OFFSET]
+            return Action(type="chi", combo=list(combo), player_idx=player_idx)
+        elif idx == self.PONG_OFFSET:
+            return Action(type="pong", player_idx=player_idx)
+        elif idx == self.OPEN_KONG_OFFSET:
+            return Action(type="open_kong", player_idx=player_idx)
+        elif idx < self.CONCEALED_KONG_OFFSET:
+            # Added kong: [57, 91)
+            tile = TILE_TYPES[idx - self.ADDED_KONG_OFFSET]
+            return Action(type="added_kong", tile=tile, player_idx=player_idx)
+        elif idx < self.WIN_OFFSET:
+            # Concealed kong: [91, 125)
+            tile = TILE_TYPES[idx - self.CONCEALED_KONG_OFFSET]
+            return Action(type="concealed_kong", tile=tile, player_idx=player_idx)
+        elif idx == self.WIN_OFFSET:
+            return Action(type="win", player_idx=player_idx)
+        elif idx == self.PASS_OFFSET:
+            return Action(type="pass", player_idx=player_idx)
+        elif idx == self.DRAW_OFFSET:
+            return Action(type="draw", player_idx=player_idx)
+        else:
+            raise ValueError(f"Action index {idx} out of range [0, {self.action_size})")
+
+    def legal_actions_to_mask(self, legal_actions: list[Action]) -> np.ndarray:
+        """Create a binary float32 mask from a list of legal actions.
+
+        Returns an array of shape (action_size,) where mask[i] = 1.0
+        if the action corresponding to index i is legal, 0.0 otherwise.
+        """
+        mask = np.zeros(self.action_size, dtype=np.float32)
+        for action in legal_actions:
+            mask[self.action_to_int(action)] = 1.0
+        return mask

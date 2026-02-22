@@ -3,8 +3,9 @@ from __future__ import annotations
 
 import numpy as np
 
-from engine.game_session import GameSession
+from engine.game_session import GameSession, Action
 from training.observation import (
+    ActionEncoder,
     ObservationEncoder,
     TILE_TYPES,
     tile_to_index,
@@ -67,3 +68,62 @@ def test_encoder_hand_section_sums():
     hand_count = int(round(hand_section.sum() * 4))
     # Player should have ~16 tiles (may vary if dealer has 17)
     assert 13 <= hand_count <= 17
+
+
+# ---------------------------------------------------------------
+# ActionEncoder tests
+# ---------------------------------------------------------------
+
+
+def test_action_encoder_space_size():
+    enc = ActionEncoder()
+    # 34 discard + chi combos + 1 pong + 4 kong + 1 win + 1 pass
+    assert enc.action_size > 34
+
+
+def test_action_to_int_discard():
+    enc = ActionEncoder()
+    action = Action(type="discard", tile="5m", combo=None, player_idx=0)
+    idx = enc.action_to_int(action)
+    assert 0 <= idx < enc.action_size
+    roundtrip = enc.int_to_action(idx, player_idx=0)
+    assert roundtrip.type == "discard"
+    assert roundtrip.tile == "5m"
+
+
+def test_action_to_int_pong():
+    enc = ActionEncoder()
+    action = Action(type="pong", tile="E", combo=None, player_idx=0)
+    idx = enc.action_to_int(action)
+    roundtrip = enc.int_to_action(idx, player_idx=0)
+    assert roundtrip.type == "pong"
+
+
+def test_action_to_int_win():
+    enc = ActionEncoder()
+    action = Action(type="win", tile="1m", combo=None, player_idx=0)
+    idx = enc.action_to_int(action)
+    roundtrip = enc.int_to_action(idx, player_idx=0)
+    assert roundtrip.type == "win"
+
+
+def test_action_to_int_pass():
+    enc = ActionEncoder()
+    action = Action(type="pass", tile=None, combo=None, player_idx=0)
+    idx = enc.action_to_int(action)
+    roundtrip = enc.int_to_action(idx, player_idx=0)
+    assert roundtrip.type == "pass"
+
+
+def test_action_mask_from_legal_actions():
+    enc = ActionEncoder()
+    session = GameSession()
+    session.start_hand()
+    # Dealer starts — should have legal actions
+    legal = session.get_legal_actions(session.state.current_player)
+    mask = enc.legal_actions_to_mask(legal)
+    assert mask.shape == (enc.action_size,)
+    assert mask.dtype == np.float32
+    assert mask.sum() > 0  # At least one legal action
+    # All 1s correspond to legal actions
+    assert np.all((mask == 0.0) | (mask == 1.0))
