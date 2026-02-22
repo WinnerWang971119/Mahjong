@@ -12,8 +12,8 @@ describe('ActionPanel', () => {
 
     render(<ActionPanel options={options} onAction={onAction} />)
 
-    expect(screen.getByText(/pong/i)).toBeInTheDocument()
-    expect(screen.getByText(/pass/i)).toBeInTheDocument()
+    expect(screen.getByText('碰')).toBeInTheDocument()
+    expect(screen.getByText('過')).toBeInTheDocument()
   })
 
   it('clicking a button calls onAction with correct type, tile, combo', () => {
@@ -25,7 +25,7 @@ describe('ActionPanel', () => {
 
     render(<ActionPanel options={options} onAction={onAction} />)
 
-    fireEvent.click(screen.getByText(/pong/i))
+    fireEvent.click(screen.getByText('碰'))
 
     expect(onAction).toHaveBeenCalledTimes(1)
     expect(onAction).toHaveBeenCalledWith('pong', '5p', undefined)
@@ -41,7 +41,7 @@ describe('ActionPanel', () => {
     render(<ActionPanel options={options} onAction={onAction} />)
 
     // With only one chi option, clicking the chi button should call onAction directly
-    fireEvent.click(screen.getByText(/chi/i))
+    fireEvent.click(screen.getByText(/吃/i))
 
     expect(onAction).toHaveBeenCalledTimes(1)
     expect(onAction).toHaveBeenCalledWith('chi', '3s', ['1s', '2s', '3s'])
@@ -58,7 +58,7 @@ describe('ActionPanel', () => {
     render(<ActionPanel options={options} onAction={onAction} />)
 
     // Click chi button to show combo selection
-    fireEvent.click(screen.getByText(/chi/i))
+    fireEvent.click(screen.getByText(/吃/i))
 
     // Should not have called onAction yet
     expect(onAction).not.toHaveBeenCalled()
@@ -82,7 +82,7 @@ describe('ActionPanel', () => {
 
     render(<ActionPanel options={options} onAction={onAction} />)
 
-    const passButton = screen.getByText(/pass/i)
+    const passButton = screen.getByText('過')
     expect(passButton).toBeInTheDocument()
 
     fireEvent.click(passButton)
