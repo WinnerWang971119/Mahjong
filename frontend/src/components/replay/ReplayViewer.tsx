@@ -23,14 +23,24 @@ export default function ReplayViewer({ onBack }: ReplayViewerProps) {
   const applyFrame = useCallback((index: number) => {
     if (!replayFrames || index >= replayFrames.length) return
     try {
-      const frame = JSON.parse(replayFrames[index].action_json)
-      if (frame.state) {
-        setGameState(frame.state)
+      const frame = replayFrames[index]
+      const data = typeof frame.action_json === 'string'
+        ? JSON.parse(frame.action_json)
+        : frame.action_json
+      if (data.state) {
+        setGameState(data.state)
       }
     } catch {
       // Skip malformed frames
     }
   }, [replayFrames, setGameState])
+
+  // Apply first frame on mount when replayFrames becomes available
+  useEffect(() => {
+    if (replayFrames && replayFrames.length > 0) {
+      applyFrame(0)
+    }
+  }, [replayFrames, applyFrame])
 
   // Auto-play
   useEffect(() => {
