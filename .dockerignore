@@ -1,0 +1,10 @@
+frontend/
+node_modules/
+.git/
+*.pyc
+__pycache__/
+checkpoints/
+runs/
+.env
+.venv/
+*.egg-info/
