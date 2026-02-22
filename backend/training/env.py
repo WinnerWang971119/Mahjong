@@ -314,9 +314,8 @@ class MahjongEnv(AECEnv):
         # even after the PettingZoo dead-step protocol removes agents
         self.rewards = dict(self._terminal_rewards)
 
-        # Set agent_selection to the first agent so dead-step protocol works
-        if self.agents:
-            self.agent_selection = self.agents[0]
+        # Clear agents list to signal episode end (allows train.py loops to exit)
+        self.agents = []
 
         # Update infos with zero masks
         self._update_infos()
