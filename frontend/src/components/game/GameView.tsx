@@ -52,7 +52,7 @@ export default function GameView({ onAction }: GameViewProps) {
   }
 
   return (
-    <div className="h-screen bg-table-green flex flex-col overflow-hidden">
+    <div className="h-screen table-surface flex flex-col overflow-hidden">
       <GameHeader gameState={gameState} />
       <div className="flex-1 flex min-h-0">
         <div className="flex-1 min-w-0 overflow-hidden">

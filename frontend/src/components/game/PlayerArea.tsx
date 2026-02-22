@@ -13,10 +13,10 @@ interface PlayerAreaProps {
 }
 
 const positionClasses: Record<string, string> = {
-  bottom: 'flex flex-col items-center',
-  top: 'flex flex-col-reverse items-center',
-  left: 'flex flex-col items-center',
-  right: 'flex flex-col items-center',
+  bottom: 'flex flex-col items-center bg-black/15 rounded-lg backdrop-blur-sm',
+  top: 'flex flex-col-reverse items-center bg-black/15 rounded-lg backdrop-blur-sm',
+  left: 'flex flex-col items-center bg-black/15 rounded-lg backdrop-blur-sm',
+  right: 'flex flex-col items-center bg-black/15 rounded-lg backdrop-blur-sm',
 }
 
 const WIND_LABELS: Record<number, string> = { 0: '東', 1: '南', 2: '西', 3: '北' }

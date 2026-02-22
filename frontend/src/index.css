@@ -38,3 +38,11 @@
   --color-flower-gold: #ca8a04;
   --font-family-sans: 'Noto Sans TC', sans-serif;
 }
+
+.table-surface {
+  background: radial-gradient(ellipse at center, #1f6d35 0%, #1a5c2a 40%, #134a20 100%);
+}
+
+.lobby-bg {
+  background: radial-gradient(ellipse at center, #1f6d35 0%, #14502a 50%, #0d3a1c 100%);
+}

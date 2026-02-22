@@ -32,13 +32,16 @@ export default function TileBase({
           disabled ? 'opacity-50 cursor-not-allowed' : '',
         ].join(' ')}
       >
-        {/* Shadow */}
-        <rect x="2" y="2" width="44" height="60" rx="4" fill="#00000020" />
+        {/* Multi-layer shadow */}
+        <rect x="2" y="3" width="44" height="60" rx="4" fill="rgba(0,0,0,0.08)" />
+        <rect x="1.5" y="2" width="44" height="60" rx="4" fill="rgba(0,0,0,0.06)" />
 
         {faceUp ? (
           <>
             {/* Tile face */}
             <rect x="0" y="0" width="44" height="60" rx="4" fill="#f5f0e1" stroke="#d4c5a9" strokeWidth="1" />
+            {/* Top-edge highlight for 3D */}
+            <rect x="1" y="0.5" width="42" height="2" rx="1" fill="rgba(255,255,255,0.2)" />
             {/* Content */}
             <g transform="translate(22, 30)">{children}</g>
           </>
