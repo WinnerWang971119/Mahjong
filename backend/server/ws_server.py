@@ -273,7 +273,8 @@ async def _send_game_end(
     phase = manager.session.state.phase
     event_data: dict = {
         "type": "event",
-        "event": phase,
+        "event": "game_end",
+        "result": phase,
         "state": manager.get_client_state(reveal_all=True),
     }
     if phase == "win":

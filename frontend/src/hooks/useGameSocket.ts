@@ -36,7 +36,7 @@ export function useGameSocket() {
         case 'event':
           addEvent({ event: msg.event, player: msg.player, tile: msg.tile })
           // Handle game end events — transition to scoring screen
-          if (msg.event === 'win' || msg.event === 'draw') {
+          if (msg.event === 'game_end') {
             if (msg.state) {
               setGameState(msg.state)
             }

@@ -50,7 +50,7 @@ export interface ActionOption {
 export type ServerMessage =
   | { type: 'game_state'; state: GameState }
   | { type: 'action_request'; player: number; options: ActionOption[]; timeout: number }
-  | { type: 'event'; event: string; player?: number; tile?: string; state?: GameState; scoring?: ScoringBreakdown }
+  | { type: 'event'; event: string; player?: number; tile?: string; state?: GameState; scoring?: ScoringBreakdown; result?: string }
   | { type: 'replay_data'; game_id: string; frames: ReplayFrame[] }
   | { type: 'error'; message: string }
 
