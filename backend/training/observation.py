@@ -92,10 +92,11 @@ class ObservationEncoder:
             obs[offset : offset + 34] = _count_tiles(opp.discards)
             offset += 34
 
-        # Opponent visible melds (3 x 34)
+        # Opponent visible melds (3 x 34) — exclude concealed kongs (hidden info)
         for opp_idx in opp_indices:
             opp = gs.players[opp_idx]
-            obs[offset : offset + 34] = _count_tiles(_meld_tiles(opp.melds))
+            visible = [m for m in opp.melds if m.from_player is not None]
+            obs[offset : offset + 34] = _count_tiles(_meld_tiles(visible))
             offset += 34
 
         # Own melds (34)
@@ -113,7 +114,8 @@ class ObservationEncoder:
         offset += 4
 
         # Tiles remaining in wall (1) -- normalized by initial wall size
-        initial_wall = 144 - 8 - 16 * 4  # 144 total - 8 flowers - 64 dealt
+        # 128 drawable (144 total - 16 back wall) - 65 dealt (64 to players + 1 dealer extra)
+        initial_wall = 63
         wall_count = len(gs.wall)
         obs[offset] = wall_count / max(initial_wall, 1)
         offset += 1
