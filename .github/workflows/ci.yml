@@ -18,7 +18,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: backend
-        run: uv pip install -e ".[dev,server]" --system
+        run: uv sync --extra dev --extra server
 
       - name: Run unit tests with coverage
         working-directory: backend

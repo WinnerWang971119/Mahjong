@@ -6,3 +6,9 @@ __pycache__/
 htmlcov/
 dist/
 *.db
+
+# Frontend build cache
+frontend/.vite/
+
+# Node
+node_modules/
