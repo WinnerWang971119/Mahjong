@@ -20,8 +20,7 @@ export default function WinAnimation({ tiles, onComplete }: WinAnimationProps) {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
-          className="text-4xl font-bold text-yellow-400"
-          style={{ textShadow: '0 0 20px rgba(250, 204, 21, 0.5)' }}
+          className="text-4xl font-bold text-yellow-400 win-text-glow"
         >
           {'\u80E1\u724C\uFF01'}
         </motion.h2>

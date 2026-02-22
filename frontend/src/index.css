@@ -9,11 +9,9 @@
 }
 .tile-interactive:hover {
   transform: scale(1.08) translateY(-3px);
-  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.35));
 }
 .tile-interactive:active {
   transform: scale(0.96);
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
 }
 
 /* Turn indicator glow */
@@ -41,6 +39,10 @@
 
 .table-surface {
   background: radial-gradient(ellipse at center, #1f6d35 0%, #1a5c2a 40%, #134a20 100%);
+}
+
+.win-text-glow {
+  text-shadow: 0 0 20px rgba(250, 204, 21, 0.5);
 }
 
 .lobby-bg {

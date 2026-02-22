@@ -83,34 +83,30 @@ export default function GameView({ onAction }: GameViewProps) {
           </button>
         </div>
       )}
-      {currentAnimation && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
-          {currentAnimation.type === 'discard' && (
-            <DiscardAnimation
-              tile={currentAnimation.data.tile as string}
-              onComplete={completeCurrentAnimation}
-            />
-          )}
-          {currentAnimation.type === 'draw' && (
-            <DrawAnimation
-              tile={currentAnimation.data.tile as string}
-              onComplete={completeCurrentAnimation}
-            />
-          )}
-          {currentAnimation.type === 'meld' && (
-            <MeldAnimation
-              tiles={currentAnimation.data.tiles as string[]}
-              meldType={currentAnimation.data.meldType as string}
-              onComplete={completeCurrentAnimation}
-            />
-          )}
-          {currentAnimation.type === 'win' && (
-            <WinAnimation
-              tiles={currentAnimation.data.tiles as string[]}
-              onComplete={completeCurrentAnimation}
-            />
-          )}
-        </div>
+      {currentAnimation && currentAnimation.type === 'discard' && (
+        <DiscardAnimation
+          tile={currentAnimation.data.tile as string}
+          onComplete={completeCurrentAnimation}
+        />
+      )}
+      {currentAnimation && currentAnimation.type === 'draw' && (
+        <DrawAnimation
+          tile={currentAnimation.data.tile as string}
+          onComplete={completeCurrentAnimation}
+        />
+      )}
+      {currentAnimation && currentAnimation.type === 'meld' && (
+        <MeldAnimation
+          tiles={currentAnimation.data.tiles as string[]}
+          meldType={currentAnimation.data.meldType as string}
+          onComplete={completeCurrentAnimation}
+        />
+      )}
+      {currentAnimation && currentAnimation.type === 'win' && (
+        <WinAnimation
+          tiles={currentAnimation.data.tiles as string[]}
+          onComplete={completeCurrentAnimation}
+        />
       )}
     </div>
   )

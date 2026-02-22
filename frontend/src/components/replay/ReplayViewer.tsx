@@ -73,7 +73,7 @@ export default function ReplayViewer({ onBack }: ReplayViewerProps) {
   }
 
   return (
-    <div className="min-h-screen bg-table-green flex flex-col">
+    <div className="min-h-screen table-surface flex flex-col">
       {gameState && (
         <>
           <GameHeader gameState={gameState} />

@@ -29,6 +29,7 @@ export function useAnimationQueue() {
   const completeCurrentAnimation = useCallback(() => {
     setCurrentAnimation(null)
     processingRef.current = false
+    setQueue((q) => [...q])  // trigger re-evaluation of the drain effect
   }, [])
 
   useEffect(() => {
@@ -37,7 +38,7 @@ export function useAnimationQueue() {
     const next = queue[0]
     setQueue((q) => q.slice(1))
     setCurrentAnimation(next)
-  }, [queue, currentAnimation])
+  }, [queue])
 
   return { currentAnimation, enqueue, completeCurrentAnimation, multiplier }
 }

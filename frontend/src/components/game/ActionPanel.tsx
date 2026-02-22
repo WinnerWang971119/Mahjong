@@ -99,7 +99,7 @@ export default function ActionPanel({ options, onAction }: ActionPanelProps) {
               onClick={() => onAction(opt.type, opt.tile ?? undefined, opt.combo ?? undefined)}
               className={`px-4 py-2 text-white rounded-lg font-bold active:scale-95 transition-all duration-100 ${ACTION_COLORS[opt.type] || 'bg-gray-600 hover:bg-gray-700'}`}
             >
-              {ACTION_LABELS[opt.type] || opt.type} ({opt.type})
+              {ACTION_LABELS[opt.type] || opt.type}
             </button>
           ))}
         </motion.div>
