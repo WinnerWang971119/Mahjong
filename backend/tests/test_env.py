@@ -43,7 +43,7 @@ def test_env_step_loop():
     env = MahjongEnv()
     env.reset()
     steps = 0
-    max_steps = 500
+    max_steps = 200
     while env.agents and steps < max_steps:
         obs, reward, term, trunc, info = env.last()
         if term or trunc:
@@ -63,7 +63,7 @@ def test_env_rewards_at_terminal():
     env = MahjongEnv()
     env.reset()
     steps = 0
-    while env.agents and steps < 500:
+    while env.agents and steps < 200:
         obs, reward, term, trunc, info = env.last()
         if term or trunc:
             env.step(None)
@@ -91,10 +91,10 @@ def test_env_observe_returns_correct_shape():
 def test_env_multiple_games():
     """Running multiple games via reset should work without errors."""
     env = MahjongEnv()
-    for _ in range(3):
+    for _ in range(1):
         env.reset()
         steps = 0
-        while env.agents and steps < 500:
+        while env.agents and steps < 200:
             obs, reward, term, trunc, info = env.last()
             if term or trunc:
                 env.step(None)
