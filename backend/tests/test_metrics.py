@@ -25,9 +25,21 @@ def test_log_evaluation(tmp_path):
         avg_hand_value=3.5, draw_rate=0.15,
     )
     logger.close()
+    event_files = list((tmp_path / "runs").rglob("events.out.*"))
+    assert len(event_files) > 0
 
 
 def test_log_league(tmp_path):
     logger = MetricsLogger(log_dir=tmp_path / "runs")
     logger.log_league(step=300, current_elo=1100.0, best_elo=1100.0, pool_size=5)
     logger.close()
+    event_files = list((tmp_path / "runs").rglob("events.out.*"))
+    assert len(event_files) > 0
+
+
+def test_log_episode(tmp_path):
+    logger = MetricsLogger(log_dir=tmp_path / "runs")
+    logger.log_episode(step=400, episode_length=85, tiles_remaining=12)
+    logger.close()
+    event_files = list((tmp_path / "runs").rglob("events.out.*"))
+    assert len(event_files) > 0

@@ -26,13 +26,16 @@ class EloTracker:
         self._elo[agent_id] = elo
 
     def update(self, winner: str, losers: list[str]) -> None:
+        """Update ELO after a game. Winner beat all losers."""
         winner_elo = self.get_elo(winner)
+        total_winner_delta = 0.0
         for loser in losers:
             loser_elo = self.get_elo(loser)
             expected_w = 1.0 / (1.0 + math.pow(10, (loser_elo - winner_elo) / 400))
             expected_l = 1.0 - expected_w
-            self._elo[winner] = self.get_elo(winner) + self._k * (1.0 - expected_w)
-            self._elo[loser] = self.get_elo(loser) + self._k * (0.0 - expected_l)
+            total_winner_delta += self._k * (1.0 - expected_w)
+            self._elo[loser] = loser_elo + self._k * (0.0 - expected_l)
+        self._elo[winner] = winner_elo + total_winner_delta
 
 
 class LeagueManager:
@@ -55,12 +58,10 @@ class LeagueManager:
         }
         self._pool.append(entry)
         if len(self._pool) > self.cfg.pool_max_size:
-            best_idx = max(range(len(self._pool)), key=lambda i: self._pool[i]["elo"])
-            best = self._pool[best_idx]
-            recent = self._pool[-(self.cfg.pool_max_size - 1):]
-            if best not in recent:
-                recent = [best] + recent[:self.cfg.pool_max_size - 1]
-            self._pool = recent
+            best = max(self._pool, key=lambda e: e["elo"])
+            others = [e for e in self._pool if e is not best]
+            keep_count = self.cfg.pool_max_size - 1
+            self._pool = [best] + others[-keep_count:]
 
     def sample_opponents(self, phase: str) -> list[str | int]:
         if phase == "warmup" or not self._pool:
