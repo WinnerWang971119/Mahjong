@@ -17,7 +17,7 @@ interface GameLogProps {
 
 export default function GameLog({ events }: GameLogProps) {
   return (
-    <div className="w-48 bg-black/30 p-2 overflow-y-auto max-h-screen">
+    <div className="w-48 shrink-0 bg-black/30 p-2 overflow-y-auto">
       <h3 className="text-white text-sm font-bold mb-2">遊戲紀錄</h3>
       <div className="flex flex-col gap-1">
         {events.map((e, i) => {

@@ -68,7 +68,7 @@ export default function ReplayViewer({ onBack }: ReplayViewerProps) {
         <>
           <GameHeader gameState={gameState} />
           <div className="flex-1">
-            <GameTable gameState={gameState} myPlayerIndex={0} selectedTile={null} onTileClick={() => {}} />
+            <GameTable gameState={gameState} myPlayerIndex={0} selectedTileIndex={null} onTileClick={() => {}} />
           </div>
         </>
       )}

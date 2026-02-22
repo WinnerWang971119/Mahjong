@@ -25,8 +25,8 @@ interface GameStore {
   setCurrentScreen: (screen: ViewScreen) => void
   actionRequest: ActionRequest | null
   setActionRequest: (req: ActionRequest | null) => void
-  selectedTile: string | null
-  setSelectedTile: (tile: string | null) => void
+  selectedTileIndex: number | null
+  setSelectedTileIndex: (idx: number | null) => void
   timerSeconds: number
   setTimerSeconds: (seconds: number) => void
 
@@ -80,8 +80,8 @@ export const useGameStore = create<GameStore>((set) => ({
   setCurrentScreen: (currentScreen) => set({ currentScreen }),
   actionRequest: null,
   setActionRequest: (actionRequest) => set({ actionRequest }),
-  selectedTile: null,
-  setSelectedTile: (selectedTile) => set({ selectedTile }),
+  selectedTileIndex: null,
+  setSelectedTileIndex: (selectedTileIndex) => set({ selectedTileIndex }),
   timerSeconds: 10,
   setTimerSeconds: (timerSeconds) => set({ timerSeconds }),
 
@@ -114,7 +114,7 @@ export const useGameStore = create<GameStore>((set) => ({
     set({
       gameState: null,
       actionRequest: null,
-      selectedTile: null,
+      selectedTileIndex: null,
       timerSeconds: 10,
       events: [],
       scoringResult: null,

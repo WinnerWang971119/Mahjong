@@ -7,21 +7,21 @@ interface PlayerAreaProps {
   player: PlayerState
   isSelf: boolean
   isActive: boolean
-  selectedTile: string | null
-  onTileClick?: (tile: string) => void
+  selectedTileIndex: number | null
+  onTileClick?: (index: number) => void
   position: 'bottom' | 'right' | 'top' | 'left'
 }
 
 const positionClasses: Record<string, string> = {
   bottom: 'flex flex-col items-center',
-  top: 'flex flex-col-reverse items-center rotate-180',
-  left: 'flex flex-row-reverse items-center -rotate-90',
-  right: 'flex flex-row items-center rotate-90',
+  top: 'flex flex-col-reverse items-center',
+  left: 'flex flex-row-reverse items-center -rotate-90 origin-center',
+  right: 'flex flex-row items-center rotate-90 origin-center',
 }
 
 const WIND_LABELS: Record<number, string> = { 0: '東', 1: '南', 2: '西', 3: '北' }
 
-export default function PlayerArea({ player, isSelf, isActive, selectedTile, onTileClick, position }: PlayerAreaProps) {
+export default function PlayerArea({ player, isSelf, isActive, selectedTileIndex, onTileClick, position }: PlayerAreaProps) {
   return (
     <div className={`${positionClasses[position]} ${isActive ? 'ring-2 ring-yellow-400 rounded-lg p-1' : 'p-1'}`}>
       <div className="flex items-center gap-2 mb-1">
@@ -36,7 +36,7 @@ export default function PlayerArea({ player, isSelf, isActive, selectedTile, onT
         tiles={player.hand}
         tileCount={player.hand_count}
         isSelf={isSelf}
-        selectedTile={selectedTile}
+        selectedTileIndex={selectedTileIndex}
         onTileClick={onTileClick}
       />
     </div>

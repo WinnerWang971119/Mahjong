@@ -252,6 +252,72 @@ def test_websocket_replay_frames_after_full_game():
 
 # ── Inspect mode via WebSocket (Task 6.8) ─────────────────────────────
 
+def test_websocket_win_event_includes_scoring():
+    """When a game ends in a win, the end event should include scoring data."""
+    with TestClient(app) as client:
+        with client.websocket_connect("/ws") as ws:
+            ws.send_json({"type": "new_game", "mode": "easy"})
+
+            game_ended_with_win = False
+            win_event = None
+            for _ in range(500):
+                msg = ws.receive_json()
+                if msg["type"] == "event" and msg.get("event") == "win" and "state" in msg:
+                    game_ended_with_win = True
+                    win_event = msg
+                    break
+                if msg["type"] == "event" and msg.get("event") == "draw":
+                    break
+                if msg["type"] == "action_request":
+                    option = msg["options"][0]
+                    ws.send_json({
+                        "type": "action",
+                        "action": option["type"],
+                        "tile": option.get("tile"),
+                        "combo": option.get("combo"),
+                    })
+
+            if game_ended_with_win:
+                assert "scoring" in win_event, "Win event should include scoring data"
+                scoring = win_event["scoring"]
+                assert "yaku" in scoring
+                assert "total" in scoring
+                assert "payments" in scoring
+
+
+def test_replay_frames_contain_state():
+    """Replay frames should include game state snapshots for replay playback."""
+    with TestClient(app) as client:
+        with client.websocket_connect("/ws") as ws:
+            ws.send_json({"type": "new_game", "mode": "easy"})
+            for _ in range(500):
+                msg = ws.receive_json()
+                if msg["type"] == "event" and msg.get("event") in ("win", "draw"):
+                    break
+                if msg["type"] == "action_request":
+                    option = msg["options"][0]
+                    ws.send_json({
+                        "type": "action",
+                        "action": option["type"],
+                        "tile": option.get("tile"),
+                        "combo": option.get("combo"),
+                    })
+
+        resp = client.get("/api/history")
+        games = resp.json()["games"]
+        assert len(games) > 0
+        game_id = games[0]["game_id"]
+
+        with client.websocket_connect("/ws") as ws:
+            ws.send_json({"type": "replay_load", "game_id": game_id})
+            data = ws.receive_json()
+            assert data["type"] == "replay_data"
+            assert len(data["frames"]) > 0
+            frame = json.loads(data["frames"][0]["action_json"])
+            assert "state" in frame, "Replay frame should include game state"
+            assert "players" in frame["state"]
+
+
 def test_websocket_inspect_mode():
     """Inspect mode should auto-play a full game and send events + state."""
     with TestClient(app) as client:

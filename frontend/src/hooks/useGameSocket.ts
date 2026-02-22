@@ -40,6 +40,9 @@ export function useGameSocket() {
             if (msg.state) {
               setGameState(msg.state)
             }
+            if (msg.scoring) {
+              useGameStore.getState().setScoringResult(msg.scoring)
+            }
             setActionRequest(null)
             setCurrentScreen('scoring')
           }
@@ -107,7 +110,7 @@ export function useGameSocket() {
       send(msg)
       // Clear action request and tile selection immediately for UI responsiveness
       useGameStore.getState().setActionRequest(null)
-      useGameStore.getState().setSelectedTile(null)
+      useGameStore.getState().setSelectedTileIndex(null)
     },
     [send],
   )

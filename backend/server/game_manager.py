@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from engine.game_session import GameSession, Action
 from engine.state import GameState
+from engine.scorer import score_hand
+from engine.win_validator import decompose_hand
 from ai.rule_based import RuleBasedAI
 from ai.shanten import shanten_number
 from server.serializer import serialize_game_state
@@ -32,6 +34,11 @@ class GameManager:
         self.events: list[dict] = []
         self.replay_frames: list[dict] = []
         self._turn_counter: int = 0
+        # Win metadata for scoring
+        self._win_player: int | None = None
+        self._win_tile: str | None = None
+        self._win_type: str | None = None  # "self_draw" or "discard"
+        self._win_discarder: int | None = None
 
     # ------------------------------------------------------------------
     # Public API
@@ -49,6 +56,15 @@ class GameManager:
         combo: list[str] | None = None,
     ) -> None:
         """Process a human player's action, then continue AI turns."""
+        if action_type == "win":
+            self._win_player = self.human_seat
+            self._win_tile = tile
+            self._win_type = (
+                "self_draw" if self.session._sub_phase == "active_turn"
+                else "discard"
+            )
+            if self._win_type == "discard":
+                self._win_discarder = self.session._pending_discarder
         action = Action(
             type=action_type,
             tile=tile,
@@ -103,18 +119,57 @@ class GameManager:
         """Return all accumulated replay frames."""
         return list(self.replay_frames)
 
+    def get_scoring(self) -> dict | None:
+        """Compute scoring breakdown if the game ended with a win."""
+        if self.session.state.phase != "win" or self._win_player is None:
+            return None
+        try:
+            gs = self.session.state
+            winner_idx = self._win_player
+            win_tile = self._win_tile or ""
+            player = gs.players[winner_idx]
+            hand = list(player.hand)
+            # Remove win_tile from hand for scoring API
+            if win_tile in hand:
+                hand.remove(win_tile)
+            decomp = decompose_hand(hand + [win_tile], player.melds)
+            result = score_hand(
+                gs,
+                winner_idx=winner_idx,
+                win_tile=win_tile,
+                win_type=self._win_type or "self_draw",
+                hand=hand,
+                melds=player.melds,
+                flowers=player.flowers,
+                decomp=decomp,
+                discarder_idx=self._win_discarder,
+            )
+            return {
+                "winner": winner_idx,
+                "yaku": result.yaku,
+                "subtotal": result.subtotal,
+                "total": result.total,
+                "payments": result.payments,
+            }
+        except Exception:
+            return None
+
     def _append_event(
         self, event: str, player: int, tile: str | None = None
     ) -> None:
         event_dict = {"event": event, "player": player, "tile": tile}
         self.events.append(event_dict)
-        # Also record for replay
+        # Record for replay with state snapshot
         self._turn_counter += 1
+        state_snapshot = serialize_game_state(
+            self.session.state, viewer_idx=0, reveal_all=True
+        )
         self.replay_frames.append({
             "turn": self._turn_counter,
             "event": event,
             "player": player,
             "tile": tile,
+            "state": state_snapshot,
         })
 
     def _run_ai_turns(self) -> None:
@@ -157,6 +212,15 @@ class GameManager:
             ai_action = self.ai.choose_action(
                 self.session.state, current, legal
             )
+            if ai_action.type == "win":
+                self._win_player = current
+                self._win_tile = ai_action.tile
+                self._win_type = (
+                    "self_draw" if self.session._sub_phase == "active_turn"
+                    else "discard"
+                )
+                if self._win_type == "discard":
+                    self._win_discarder = self.session._pending_discarder
             self.session.step(ai_action)
             self._append_event(ai_action.type, current, ai_action.tile)
 
@@ -206,6 +270,11 @@ class GameManager:
                 self.session.state, claimer_idx, legal
             )
             if ai_action.type != "pass":
+                if ai_action.type == "win":
+                    self._win_player = claimer_idx
+                    self._win_tile = ai_action.tile
+                    self._win_type = "discard"
+                    self._win_discarder = self.session._pending_discarder
                 # Before executing the claim, all other non-discarder
                 # non-claimer players must pass first (the game session
                 # tracks _passed_players).  Pass everyone except the
@@ -271,6 +340,11 @@ class GameManager:
                 self.session.state, claimer_idx, legal
             )
             if ai_action.type != "pass":
+                if ai_action.type == "win":
+                    self._win_player = claimer_idx
+                    self._win_tile = ai_action.tile
+                    self._win_type = "discard"
+                    self._win_discarder = self.session._pending_discarder
                 self._pass_all_except(claimer_idx)
                 self.session.step(ai_action)
                 self._append_event(

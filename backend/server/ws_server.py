@@ -271,10 +271,15 @@ async def _send_game_end(
 ) -> None:
     """Send a game-end event and persist the result."""
     phase = manager.session.state.phase
-    await websocket.send_json({
+    event_data: dict = {
         "type": "event",
         "event": phase,
         "state": manager.get_client_state(reveal_all=True),
-    })
+    }
+    if phase == "win":
+        scoring = manager.get_scoring()
+        if scoring is not None:
+            event_data["scoring"] = scoring
+    await websocket.send_json(event_data)
     if game_id:
         await db.finish_game(game_id, phase)

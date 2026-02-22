@@ -2,11 +2,11 @@
 import pytest
 
 from engine.scorer import score_hand, ScoringResult
-from engine.state import GameState, PlayerState, Meld
+from engine.state import GameState, PlayerState, Meld, WindType
 from engine.win_validator import decompose_hand
 
 
-def make_gs(dealer_idx=0, streak=0, round_wind="E") -> GameState:
+def make_gs(dealer_idx=0, streak=0, round_wind: WindType = "E") -> GameState:
     gs = GameState.new_game()
     gs.round_wind = round_wind
     gs.dealer_index = dealer_idx

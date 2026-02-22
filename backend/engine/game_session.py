@@ -193,6 +193,9 @@ class GameSession:
         discarder = self._pending_discarder
         assert discarder is not None
 
+        if player_idx in self._passed_players:
+            return []
+
         actions: list[Action] = []
 
         # Win on discard
