@@ -70,15 +70,16 @@ export default function GameView({ onAction }: GameViewProps) {
       )}
       {/* Discard button when tile is selected and it's our active turn */}
       {selectedTileCode && !actionRequest && gameState.current_player === myPlayerIndex && (
-        <div className="flex justify-center p-2 bg-black/40">
+        <div className="flex flex-col items-center gap-1 p-3 bg-black/50 backdrop-blur-sm rounded-t-lg">
+          <span className="text-white/50 text-xs tracking-wide">再按一次出牌 · Click tile again to discard</span>
           <button
             onClick={() => {
               onAction('discard', selectedTileCode)
               setSelectedTileIndex(null)
             }}
-            className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold"
+            className="px-8 py-2.5 bg-red-600 hover:bg-red-500 active:scale-95 text-white rounded-lg font-bold transition-all duration-150 shadow-lg shadow-red-900/30"
           >
-            打出 {selectedTileCode} (Discard)
+            打出 {selectedTileCode}
           </button>
         </div>
       )}

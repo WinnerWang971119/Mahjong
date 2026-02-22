@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import type { ActionOption } from '../../types/game'
 
 interface ActionPanelProps {
@@ -58,20 +59,25 @@ export default function ActionPanel({ options, onAction }: ActionPanelProps) {
                 onAction('chi', opt.tile ?? undefined, opt.combo ?? undefined)
                 setShowChiCombos(false)
               }}
-              className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold"
+              className="px-3 py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-lg text-sm font-bold transition-all duration-100"
             >
               {opt.combo?.join(' ') || 'Chi'}
             </button>
           ))}
           <button
             onClick={() => setShowChiCombos(false)}
-            className="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm"
+            className="px-3 py-2 bg-gray-600 hover:bg-gray-700 active:scale-95 text-white rounded-lg text-sm transition-all duration-100"
           >
             取消
           </button>
         </div>
       ) : (
-        <div className="flex gap-2">
+        <motion.div
+          initial={{ y: 16, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+          className="flex gap-2"
+        >
           {chiOptions.length > 0 && (
             <button
               onClick={() => {
@@ -82,7 +88,7 @@ export default function ActionPanel({ options, onAction }: ActionPanelProps) {
                   setShowChiCombos(true)
                 }
               }}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-lg font-bold transition-all duration-100"
             >
               吃 (Chi)
             </button>
@@ -91,12 +97,12 @@ export default function ActionPanel({ options, onAction }: ActionPanelProps) {
             <button
               key={opt.type}
               onClick={() => onAction(opt.type, opt.tile ?? undefined, opt.combo ?? undefined)}
-              className={`px-4 py-2 text-white rounded-lg font-bold ${ACTION_COLORS[opt.type] || 'bg-gray-600 hover:bg-gray-700'}`}
+              className={`px-4 py-2 text-white rounded-lg font-bold active:scale-95 transition-all duration-100 ${ACTION_COLORS[opt.type] || 'bg-gray-600 hover:bg-gray-700'}`}
             >
               {ACTION_LABELS[opt.type] || opt.type} ({opt.type})
             </button>
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
   )

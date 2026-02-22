@@ -2,6 +2,31 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
 
+/* Tile interaction feedback */
+.tile-interactive {
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), filter 150ms ease;
+  cursor: pointer;
+}
+.tile-interactive:hover {
+  transform: scale(1.08) translateY(-3px);
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.35));
+}
+.tile-interactive:active {
+  transform: scale(0.96);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
+}
+
+/* Turn indicator glow */
+@keyframes turn-glow {
+  0%, 100% { box-shadow: 0 0 8px 2px rgba(250, 204, 21, 0.3); }
+  50% { box-shadow: 0 0 20px 6px rgba(250, 204, 21, 0.6); }
+}
+.active-turn-glow {
+  animation: turn-glow 2s ease-in-out infinite;
+  border: 2px solid #facc15;
+  border-radius: 0.5rem;
+}
+
 @theme {
   --color-table-green: #1a5c2a;
   --color-table-blue: #1a3c5c;
