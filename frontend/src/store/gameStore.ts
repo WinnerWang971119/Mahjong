@@ -35,6 +35,10 @@ interface GameStore {
   addEvent: (event: { event: string; player?: number; tile?: string }) => void
   clearEvents: () => void
 
+  // Last event (for animation triggering)
+  lastEvent: { event: string; player?: number; tile?: string } | null
+  setLastEvent: (event: { event: string; player?: number; tile?: string } | null) => void
+
   // Scoring
   scoringResult: ScoringBreakdown | null
   setScoringResult: (result: ScoringBreakdown | null) => void
@@ -90,6 +94,10 @@ export const useGameStore = create<GameStore>((set) => ({
   addEvent: (event) => set((s) => ({ events: [...s.events, event] })),
   clearEvents: () => set({ events: [] }),
 
+  // Last event (for animation triggering)
+  lastEvent: null,
+  setLastEvent: (lastEvent) => set({ lastEvent }),
+
   // Scoring
   scoringResult: null,
   setScoringResult: (scoringResult) => set({ scoringResult }),
@@ -117,6 +125,7 @@ export const useGameStore = create<GameStore>((set) => ({
       selectedTileIndex: null,
       timerSeconds: 10,
       events: [],
+      lastEvent: null,
       scoringResult: null,
       currentScreen: 'lobby',
     }),

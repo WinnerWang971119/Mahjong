@@ -11,13 +11,15 @@ export default function GameHeader({ gameState }: GameHeaderProps) {
   const currentWindChar = WIND_LABELS[(['E', 'S', 'W', 'N'] as const)[gameState.current_player]] || ''
 
   return (
-    <div className="flex items-center justify-between px-4 py-2 bg-black/40 text-white rounded-lg">
-      <div className="flex items-center gap-4">
-        <span className="text-lg font-bold">{windChar}風 第{gameState.round_number + 1}局</span>
+    <div className="flex items-center justify-between px-6 py-3 bg-black/50 text-white border-b border-white/10">
+      <div className="flex items-center gap-3">
+        <span className="text-xl font-bold tracking-wide text-yellow-400/90">{windChar}風</span>
+        <span className="text-white/40">|</span>
+        <span className="text-base font-medium">第{gameState.round_number + 1}局</span>
       </div>
-      <div className="flex items-center gap-2">
-        <span className="text-sm">輪到: {currentWindChar}家</span>
-        <span className="text-sm">剩餘: {gameState.wall_remaining}張</span>
+      <div className="flex items-center gap-4 text-sm text-white/70">
+        <span>輪到: <span className="text-yellow-400 font-medium">{currentWindChar}家</span></span>
+        <span>剩餘: <span className="text-white font-medium">{gameState.wall_remaining}</span>張</span>
       </div>
     </div>
   )

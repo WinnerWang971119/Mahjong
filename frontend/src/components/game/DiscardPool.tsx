@@ -7,7 +7,7 @@ interface DiscardPoolProps {
 
 export default function DiscardPool({ discards, lastDiscard }: DiscardPoolProps) {
   return (
-    <div className="grid grid-cols-6 gap-0.5 p-2 bg-black/20 rounded-lg">
+    <div className="grid grid-cols-6 gap-0.5 p-3 bg-black/20 rounded-lg shadow-inner">
       {discards.map((tile, i) => (
         <Tile
           key={i}

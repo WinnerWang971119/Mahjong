@@ -13,17 +13,22 @@ interface PlayerAreaProps {
 }
 
 const positionClasses: Record<string, string> = {
-  bottom: 'flex flex-col items-center',
-  top: 'flex flex-col-reverse items-center',
-  left: 'flex flex-col items-center',
-  right: 'flex flex-col items-center',
+  bottom: 'flex flex-col items-center bg-black/15 rounded-lg backdrop-blur-sm',
+  top: 'flex flex-col-reverse items-center bg-black/15 rounded-lg backdrop-blur-sm',
+  left: 'flex flex-col items-center bg-black/15 rounded-lg backdrop-blur-sm',
+  right: 'flex flex-col items-center bg-black/15 rounded-lg backdrop-blur-sm',
 }
 
 const WIND_LABELS: Record<number, string> = { 0: '東', 1: '南', 2: '西', 3: '北' }
 
 export default function PlayerArea({ player, isSelf, isActive, selectedTileIndex, onTileClick, position }: PlayerAreaProps) {
   return (
-    <div className={`${positionClasses[position]} ${isActive ? 'ring-2 ring-yellow-400 rounded-lg p-1' : 'p-1'}`}>
+    <div className={`${positionClasses[position]} ${isActive ? 'active-turn-glow p-2' : 'p-2'}`}>
+      {isActive && isSelf && (
+        <span className="text-xs font-bold text-yellow-400 animate-pulse tracking-wider uppercase mb-1">
+          輪到你了！
+        </span>
+      )}
       <div className="flex items-center gap-2 mb-1">
         <span className="text-xs text-white font-bold">
           {WIND_LABELS[player.seat]}
