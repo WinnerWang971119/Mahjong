@@ -29,7 +29,7 @@ export default function GameTable({ gameState, myPlayerIndex, selectedTileIndex,
       </div>
 
       {/* Left player */}
-      <div className="col-start-1 row-start-2 flex items-center justify-center overflow-hidden max-w-[80px]">
+      <div className="col-start-1 row-start-2 flex items-center justify-center overflow-hidden max-w-[100px]">
         {gameState.players.map((p) =>
           getSeatPosition(p.seat, myPlayerIndex) === 'left' ? (
             <PlayerArea key={p.seat} player={p} isSelf={false} isActive={p.seat === gameState.current_player} selectedTileIndex={null} position="left" />
@@ -46,7 +46,7 @@ export default function GameTable({ gameState, myPlayerIndex, selectedTileIndex,
       </div>
 
       {/* Right player */}
-      <div className="col-start-3 row-start-2 flex items-center justify-center overflow-hidden max-w-[80px]">
+      <div className="col-start-3 row-start-2 flex items-center justify-center overflow-hidden max-w-[100px]">
         {gameState.players.map((p) =>
           getSeatPosition(p.seat, myPlayerIndex) === 'right' ? (
             <PlayerArea key={p.seat} player={p} isSelf={false} isActive={p.seat === gameState.current_player} selectedTileIndex={null} position="right" />

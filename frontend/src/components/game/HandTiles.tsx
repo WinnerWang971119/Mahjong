@@ -7,6 +7,7 @@ interface HandTilesProps {
   isSelf: boolean
   selectedTileIndex: number | null
   onTileClick?: (index: number) => void
+  position?: 'bottom' | 'right' | 'top' | 'left'
 }
 
 const SUIT_ORDER: Record<string, number> = { m: 0, p: 1, s: 2 }
@@ -22,7 +23,9 @@ function tileSortKey(code: string): number {
   return 999 // unknown tiles at end
 }
 
-export default function HandTiles({ tiles, tileCount, isSelf, selectedTileIndex, onTileClick }: HandTilesProps) {
+export default function HandTiles({ tiles, tileCount, isSelf, selectedTileIndex, onTileClick, position }: HandTilesProps) {
+  const isSide = position === 'left' || position === 'right'
+
   const sortedWithIndices = useMemo(() => {
     if (!tiles) return null
     return tiles
@@ -32,15 +35,16 @@ export default function HandTiles({ tiles, tileCount, isSelf, selectedTileIndex,
 
   if (isSelf && sortedWithIndices) {
     return (
-      <div className="flex gap-0.5 justify-center flex-wrap">
-        {sortedWithIndices.map((item, displayIndex) => (
-          <Tile
-            key={`${item.tile}-${item.originalIndex}`}
-            code={item.tile}
-            faceUp
-            selected={selectedTileIndex === item.originalIndex}
-            onClick={() => onTileClick?.(item.originalIndex)}
-          />
+      <div className={isSide ? 'flex flex-col gap-0.5 items-center' : 'flex gap-0.5 justify-center flex-wrap'}>
+        {sortedWithIndices.map((item) => (
+          <div key={`${item.tile}-${item.originalIndex}`} className={isSide ? 'rotate-90' : ''}>
+            <Tile
+              code={item.tile}
+              faceUp
+              selected={selectedTileIndex === item.originalIndex}
+              onClick={() => onTileClick?.(item.originalIndex)}
+            />
+          </div>
         ))}
       </div>
     )
@@ -48,9 +52,11 @@ export default function HandTiles({ tiles, tileCount, isSelf, selectedTileIndex,
 
   // Opponents: face-down tiles
   return (
-    <div className="flex gap-0.5 justify-center flex-wrap">
+    <div className={isSide ? 'flex flex-col gap-0.5 items-center' : 'flex gap-0.5 justify-center flex-wrap'}>
       {Array.from({ length: tileCount }, (_, i) => (
-        <Tile key={i} code="" faceUp={false} />
+        <div key={i} className={isSide ? 'rotate-90' : ''}>
+          <Tile code="" faceUp={false} />
+        </div>
       ))}
     </div>
   )

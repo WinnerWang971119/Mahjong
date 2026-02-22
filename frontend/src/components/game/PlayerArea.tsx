@@ -15,8 +15,8 @@ interface PlayerAreaProps {
 const positionClasses: Record<string, string> = {
   bottom: 'flex flex-col items-center',
   top: 'flex flex-col-reverse items-center',
-  left: 'flex flex-row-reverse items-center -rotate-90 origin-center',
-  right: 'flex flex-row items-center rotate-90 origin-center',
+  left: 'flex flex-col items-center',
+  right: 'flex flex-col items-center',
 }
 
 const WIND_LABELS: Record<number, string> = { 0: '東', 1: '南', 2: '西', 3: '北' }
@@ -29,15 +29,16 @@ export default function PlayerArea({ player, isSelf, isActive, selectedTileIndex
           {WIND_LABELS[player.seat]}
           {player.is_dealer && ' 莊'}
         </span>
-        <FlowerArea flowers={player.flowers} />
+        <FlowerArea flowers={player.flowers} position={position} />
       </div>
-      <MeldArea melds={player.melds} />
+      <MeldArea melds={player.melds} position={position} />
       <HandTiles
         tiles={player.hand}
         tileCount={player.hand_count}
         isSelf={isSelf}
         selectedTileIndex={selectedTileIndex}
         onTileClick={onTileClick}
+        position={position}
       />
     </div>
   )
