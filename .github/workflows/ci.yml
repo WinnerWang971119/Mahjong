@@ -1,4 +1,4 @@
-name: Phase 1 Tests
+name: Tests
 
 on:
   push:
@@ -18,11 +18,11 @@ jobs:
 
       - name: Install dependencies
         working-directory: backend
-        run: uv pip install -e ".[dev]" --system
+        run: uv pip install -e ".[dev,server]" --system
 
       - name: Run unit tests with coverage
         working-directory: backend
-        run: uv run pytest --cov=engine --cov=ai --cov-report=term-missing -v --ignore=tests/test_integration.py
+        run: uv run pytest --cov=engine --cov=ai --cov=server --cov-report=term-missing -v --ignore=tests/test_integration.py
 
       - name: Run integration tests
         working-directory: backend
@@ -31,4 +31,4 @@ jobs:
 
       - name: Fail if coverage below 85%
         working-directory: backend
-        run: uv run pytest --cov=engine --cov=ai --cov-fail-under=85 --ignore=tests/test_integration.py -q
+        run: uv run pytest --cov=engine --cov=ai --cov=server --cov-fail-under=85 --ignore=tests/test_integration.py -q

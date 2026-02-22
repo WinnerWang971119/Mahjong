@@ -193,6 +193,9 @@ class GameSession:
         discarder = self._pending_discarder
         assert discarder is not None
 
+        if player_idx in self._passed_players:
+            return []
+
         actions: list[Action] = []
 
         # Win on discard
@@ -311,8 +314,11 @@ class GameSession:
             if t != discard:
                 claimer.hand.remove(t)
 
-        # Remove the discard from the pool (it was added during discard step)
-        # Actually the tile stays in discard_pool as record; we just consume it
+        # Remove the claimed discard from both pools
+        gs.discard_pool.remove(discard)
+        gs.players[discarder].discards.remove(discard)
+        gs.last_discard = None
+
         meld = Meld(type="chi", tiles=list(combo), from_player=discarder)
         claimer.melds.append(meld)
 
@@ -339,6 +345,11 @@ class GameSession:
         for _ in range(2):
             claimer.hand.remove(discard)
 
+        # Remove the claimed discard from both pools
+        gs.discard_pool.remove(discard)
+        gs.players[discarder].discards.remove(discard)
+        gs.last_discard = None
+
         meld = Meld(type="pong", tiles=[discard, discard, discard], from_player=discarder)
         claimer.melds.append(meld)
 
@@ -362,6 +373,11 @@ class GameSession:
 
             for _ in range(3):
                 claimer.hand.remove(discard)
+
+            # Remove the claimed discard from both pools
+            gs.discard_pool.remove(discard)
+            gs.players[discarder].discards.remove(discard)
+            gs.last_discard = None
 
             meld = Meld(
                 type="open_kong",
