@@ -1,5 +1,6 @@
 """Integration test: 1,000 complete games without crash or illegal state."""
 import random
+import pytest
 from engine.game_session import GameSession, Action
 from ai.rule_based import RuleBasedAI
 
@@ -84,60 +85,70 @@ def _run_batch(start: int, count: int) -> dict[str, int]:
     return results
 
 
+@pytest.mark.slow
 def test_batch_0_100():
     results = _run_batch(0, 100)
     assert results.get("play", 0) == 0, f"Hands stuck: {results}"
     print(f"Batch 0-99: {results}")
 
 
+@pytest.mark.slow
 def test_batch_100_200():
     results = _run_batch(100, 100)
     assert results.get("play", 0) == 0, f"Hands stuck: {results}"
     print(f"Batch 100-199: {results}")
 
 
+@pytest.mark.slow
 def test_batch_200_300():
     results = _run_batch(200, 100)
     assert results.get("play", 0) == 0, f"Hands stuck: {results}"
     print(f"Batch 200-299: {results}")
 
 
+@pytest.mark.slow
 def test_batch_300_400():
     results = _run_batch(300, 100)
     assert results.get("play", 0) == 0, f"Hands stuck: {results}"
     print(f"Batch 300-399: {results}")
 
 
+@pytest.mark.slow
 def test_batch_400_500():
     results = _run_batch(400, 100)
     assert results.get("play", 0) == 0, f"Hands stuck: {results}"
     print(f"Batch 400-499: {results}")
 
 
+@pytest.mark.slow
 def test_batch_500_600():
     results = _run_batch(500, 100)
     assert results.get("play", 0) == 0, f"Hands stuck: {results}"
     print(f"Batch 500-599: {results}")
 
 
+@pytest.mark.slow
 def test_batch_600_700():
     results = _run_batch(600, 100)
     assert results.get("play", 0) == 0, f"Hands stuck: {results}"
     print(f"Batch 600-699: {results}")
 
 
+@pytest.mark.slow
 def test_batch_700_800():
     results = _run_batch(700, 100)
     assert results.get("play", 0) == 0, f"Hands stuck: {results}"
     print(f"Batch 700-799: {results}")
 
 
+@pytest.mark.slow
 def test_batch_800_900():
     results = _run_batch(800, 100)
     assert results.get("play", 0) == 0, f"Hands stuck: {results}"
     print(f"Batch 800-899: {results}")
 
 
+@pytest.mark.slow
 def test_batch_900_1000():
     results = _run_batch(900, 100)
     assert results.get("play", 0) == 0, f"Hands stuck: {results}"

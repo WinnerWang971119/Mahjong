@@ -318,6 +318,7 @@ def test_replay_frames_contain_state():
             assert "players" in frame["state"]
 
 
+@pytest.mark.slow
 def test_websocket_inspect_mode():
     """Inspect mode should auto-play a full game and send events + state."""
     with TestClient(app) as client:
@@ -363,6 +364,7 @@ def test_websocket_inspect_mode():
             assert got_ai_thinking, "No ai_thinking events in inspect mode"
 
 
+@pytest.mark.slow
 def test_websocket_inspect_mode_saves_replay():
     """Inspect mode should save replay frames to the database."""
     with TestClient(app) as client:

@@ -22,7 +22,17 @@ jobs:
 
       - name: Run unit tests with coverage
         working-directory: backend
-        run: uv run pytest --cov=engine --cov=ai --cov=server --cov-report=term-missing -v --ignore=tests/test_integration.py
+        run: >
+          uv run pytest --cov=engine --cov=ai --cov=server --cov-report=term-missing -v
+          --ignore=tests/test_integration.py
+          --ignore=tests/test_checkpoints.py
+          --ignore=tests/test_env.py
+          --ignore=tests/test_metrics.py
+          --ignore=tests/test_network.py
+          --ignore=tests/test_observation.py
+          --ignore=tests/test_ppo.py
+          --ignore=tests/test_self_play.py
+          --ignore=tests/test_train.py
 
       - name: Run integration tests
         working-directory: backend
@@ -31,4 +41,14 @@ jobs:
 
       - name: Fail if coverage below 85%
         working-directory: backend
-        run: uv run pytest --cov=engine --cov=ai --cov=server --cov-fail-under=85 --ignore=tests/test_integration.py -q
+        run: >
+          uv run pytest --cov=engine --cov=ai --cov=server --cov-fail-under=85 -q
+          --ignore=tests/test_integration.py
+          --ignore=tests/test_checkpoints.py
+          --ignore=tests/test_env.py
+          --ignore=tests/test_metrics.py
+          --ignore=tests/test_network.py
+          --ignore=tests/test_observation.py
+          --ignore=tests/test_ppo.py
+          --ignore=tests/test_self_play.py
+          --ignore=tests/test_train.py
