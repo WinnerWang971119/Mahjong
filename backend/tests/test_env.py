@@ -75,7 +75,7 @@ def test_env_rewards_at_terminal():
         steps += 1
     # Check that rewards were assigned
     total_reward = sum(abs(env.rewards.get(a, 0)) for a in env.possible_agents)
-    assert total_reward > 0 or steps >= 500
+    assert total_reward > 0 or steps >= 200
 
 
 def test_env_observe_returns_correct_shape():

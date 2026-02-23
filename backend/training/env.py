@@ -333,9 +333,14 @@ class MahjongEnv(AECEnv):
         winner_idx = gs.current_player
         p = gs.players[winner_idx]
 
-        # Determine win tile: for self-draw it's the last tile added to hand,
-        # for discard win it's the last_discard
-        if gs.last_action in ("draw", "replacement_draw"):
+        # Determine win type from the sub-phase at win time.
+        # gs.last_action is always "win" here (the engine overwrites it),
+        # so we use _sub_phase which is NOT modified by _do_win().
+        is_self_draw = self._session._sub_phase == "active_turn"
+        win_type = "self_draw" if is_self_draw else "discard"
+
+        # Determine win tile based on win type
+        if is_self_draw:
             # Self-draw: winning tile is the last tile in hand
             if not p.hand:
                 return None, 0
@@ -353,7 +358,7 @@ class MahjongEnv(AECEnv):
                 result = is_winning_hand(test_hand, p.melds, p.flowers, tile)
                 if result is not None:
                     total_tai = self._compute_tai(
-                        gs, winner_idx, tile, test_hand, p.melds, p.flowers
+                        gs, winner_idx, tile, test_hand, p.melds, p.flowers, win_type
                     )
                     return winner_idx, total_tai
             return None, 0
@@ -362,7 +367,7 @@ class MahjongEnv(AECEnv):
         result = is_winning_hand(hand_without, p.melds, p.flowers, win_tile)
         if result is not None:
             total_tai = self._compute_tai(
-                gs, winner_idx, win_tile, hand_without, p.melds, p.flowers
+                gs, winner_idx, win_tile, hand_without, p.melds, p.flowers, win_type
             )
             return winner_idx, total_tai
 
@@ -373,7 +378,7 @@ class MahjongEnv(AECEnv):
             result = is_winning_hand(test_hand, p.melds, p.flowers, tile)
             if result is not None:
                 total_tai = self._compute_tai(
-                    gs, winner_idx, tile, test_hand, p.melds, p.flowers
+                    gs, winner_idx, tile, test_hand, p.melds, p.flowers, win_type
                 )
                 return winner_idx, total_tai
 
@@ -387,17 +392,11 @@ class MahjongEnv(AECEnv):
         hand: list[str],
         melds: list[Meld],
         flowers: list[str],
+        win_type: str,
     ) -> int:
         """Score the winning hand and return total tai."""
         full_hand = hand + [win_tile]
         decomp = decompose_hand(full_hand, melds)
-
-        # Determine win type from last action
-        win_type = (
-            "self_draw"
-            if gs.last_action in ("draw", "replacement_draw")
-            else "discard"
-        )
 
         try:
             result = score_hand(

@@ -1,6 +1,5 @@
 # Phase 3: RL Training Infrastructure — Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Build a PPO self-play RL pipeline that trains a mahjong AI to beat the rule-based baseline in >80% of games.
 

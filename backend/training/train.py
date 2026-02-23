@@ -34,7 +34,6 @@ def _evaluate_vs_rule_based(
     Returns dict with keys: win_rate, avg_reward, avg_hand_value, draw_rate.
     """
     rule_ai = RuleBasedAI()
-    obs_encoder = ObservationEncoder()
 
     wins = 0
     draws = 0
@@ -232,7 +231,10 @@ def _collect_rollout(
 
 def run_training(cfg: TrainingConfig) -> None:
     """Run the full RL training pipeline."""
-    device = cfg.device
+    if cfg.device == "cuda" and not torch.cuda.is_available():
+        device = "cpu"
+    else:
+        device = cfg.device
     obs_encoder = ObservationEncoder()
     act_encoder = ActionEncoder()
 
